@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: accountant
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-accountant_dev}
+      POSTGRES_DB: the_accountant
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U accountant"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    environment:
+      DATABASE_URL: postgresql://accountant:${DB_PASSWORD:-accountant_dev}@db:5432/the_accountant
+      RUST_LOG: info,the_accountant=debug
+      UPLOAD_DIR: /data/uploads
+      APP_PORT: "8080"
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  uploads:
