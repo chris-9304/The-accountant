@@ -5,6 +5,7 @@ use axum::{
 };
 use tower_http::cors::CorsLayer;
 use tower_http::limit::RequestBodyLimitLayer;
+use tower_http::services::ServeDir;
 use crate::app_state::AppState;
 use crate::api::middleware::request_logger;
 use crate::api::handlers::*;
@@ -68,6 +69,7 @@ pub fn create_router(state: AppState) -> Router {
 
     Router::new()
         .nest("/api", api)
+        .fallback_service(ServeDir::new("static"))
         .layer(middleware::from_fn(request_logger))
         .layer(CorsLayer::permissive())
         .layer(RequestBodyLimitLayer::new(50 * 1024 * 1024)) // 50MB

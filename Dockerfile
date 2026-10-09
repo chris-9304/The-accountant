@@ -3,6 +3,7 @@ RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/li
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo "fn main() {}" > src/main.rs && cargo build --release 2>/dev/null || true && rm -rf src
+COPY migrations/ migrations/
 COPY src/ src/
 RUN touch src/main.rs && cargo build --release
 
@@ -11,5 +12,6 @@ RUN apt-get update && apt-get install -y ca-certificates libssl3 poppler-utils &
 WORKDIR /app
 COPY --from=builder /app/target/release/the-accountant .
 COPY migrations/ migrations/
+COPY static/ static/
 EXPOSE 8080
 CMD ["./the-accountant"]
